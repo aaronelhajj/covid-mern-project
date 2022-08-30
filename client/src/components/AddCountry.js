@@ -1,96 +1,99 @@
-import React, {useState, useEffect} from 'react';
-import {useParams, useNavigate, Link} from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import NavBar from './NavBar';
 import Form from 'react-bootstrap/Form';
 import Table from 'react-bootstrap/Table'
 import Button from 'react-bootstrap/Button'
 import 'bootstrap/dist/css/bootstrap.min.css'
-const AddCountry = (props) =>{
-    const {name} = useParams();
+const AddCountry = (props) => {
+    const { name } = useParams();
     const [country, setCountry] = useState([]);
     const navigate = useNavigate();
-    const [user, setUser] =  useState({})
+    const [user, setUser] = useState({})
     const [familyMembers, setFamilyMembers] = useState("");
     const [description, setDescription] = useState("");
     const [plans, setPlans] = useState("");
     const [errors, setErrors] = useState([])
     const [danger, setDanger] = useState(false)
+    const [imgName, setImgName] = useState("")
     const styles = {
-        dangerClass:{
+        dangerClass: {
             backgroundColor: danger ? "red" : ""
         }
     }
-    
-
-    const apiCall = async () =>{
-        try {
-            const data = await axios
-            .get(`https://corona.lmao.ninja/v2/countries/${name}?yesterday=true&strict=true&query`)
-            .then(res =>{
-                console.log(res);
-                setCountry(res.data);
-                // setLoading(true);
-            });
-        } catch(err){
-            console.log(err)
+    const options = {
+        method: 'GET',
+        url: 'https://covid-193.p.rapidapi.com/statistics',
+        params: { country: name },
+        headers: {
+            'X-RapidAPI-Key': 'bf3dc3d936mshea8985b5b1e0517p18ae32jsnb9bbae562bec',
+            'X-RapidAPI-Host': 'covid-193.p.rapidapi.com'
         }
-    }
-    useEffect(()=>{
-        apiCall();
+    };
+    useEffect(() => {
+        axios.request(options).then(function (response) {
+            console.log(response.data);
+            setCountry(response.data.response)
+
+            console.log(country)
+        }).catch(function (error) {
+            console.error(error);
+        });
+
     }, [])
 
-    useEffect(()=>{
+    useEffect(() => {
         axios.get("http://localhost:8000/api/users/getUser",
-        {
-            withCredentials: true
-        })
-            .then((res)=>{
+            {
+                withCredentials: true
+            })
+            .then((res) => {
                 console.log(res.data);
                 setUser(res.data);
             })
-            .catch((err)=>{
+            .catch((err) => {
                 console.log(err);
                 navigate('/')
             })
     }, [])
-    const onSubmitHandler = (e) =>{
+    const onSubmitHandler = (e) => {
         e.preventDefault();
-        axios.post('http://localhost:8000/api/covid',{
+        axios.post('http://localhost:8000/api/covid', {
             name,
             familyMembers,
             description,
             plans
-        },{
+        }, {
             withCredentials: true
         }
         )
-        .then((res)=>{
-            console.log('hello')
-            console.log(res)
-            if(res.data.errors) {
-                console.log('hello!!!!!!!!')
-                console.log(res.data.errors)
-                setErrors(res.data.errors);
-            }
-            else{
-                navigate(`/user/profile/${user.username}`)
-            }
-        })
-        .catch((err)=>{
-            console.log(err)
-        })
+            .then((res) => {
+                console.log('hello')
+                console.log(res)
+                if (res.data.errors) {
+                    console.log('hello!!!!!!!!')
+                    console.log(res.data.errors)
+                    setErrors(res.data.errors);
+                }
+                else {
+                    navigate(`/user/profile/${user.username}`)
+                }
+            })
+            .catch((err) => {
+                console.log(err)
+            })
         setDescription("");
         setFamilyMembers("");
         setPlans("");
-        
+
 
     }
-    const numbWithCommas = (num) =>{
+    const numbWithCommas = (num) => {
         return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
     }
-    useEffect(()=>{
-        if(country.active > 100000){
+    useEffect(() => {
+        if (country.active > 100000) {
             setDanger(true);
             console.log(danger)
         }
@@ -98,53 +101,63 @@ const AddCountry = (props) =>{
     return (
         <div>
             <NavBar />
+            {country.map((count, index) => {
+                
+                return (
+                    <div>
+                        <div>
+                            <img style={{width:250}}src={`/images/${count.continent}.png`} alt ={`/images/${count.continent}`}/>
+                            <h1>{count.country ? count.country : null} COVID-19 Cases: </h1>
+                            <p>{count.cases.total ? numbWithCommas(count.cases.total) : 0}</p>
+                            <h2>Total population:</h2>
+                            <p>{count.population ? numbWithCommas(count.population) : 'N/A'}</p>
+                            <h3>Total deaths:</h3>
+                            <p>{count.deaths.total ? numbWithCommas(count.deaths.total) : 0}</p>
+                        </div>
+                        <div className='infoContainer'>
+                            <p> More info:</p>
+                            <Table>
+                                <thead>
+                                    <tr>
+                                        <th>New Cases:</th>
+                                        <th>New Deaths:</th>
+                                        <th>Recovered:</th>
+                                        <th>Active:</th>
+                                        <th>Critical:</th>
+                                        <th>Tests:</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>{count.cases.new ? numbWithCommas(count.cases.new) : 0}</td>
+                                        <td>{count.deaths.new ? numbWithCommas(count.deaths.new) : 0}</td>
+                                        <td>{count.recovered ? numbWithCommas(count.recovered) : 'N/A'}</td>
+                                        <td style={styles.dangerClass}>{count.active ? numbWithCommas(count.active) : 0}</td>
+                                        <td>{count.cases.critical ? numbWithCommas(count.cases.critical) : 0}</td>
+                                        <td>{count.tests.total ? numbWithCommas(count.tests.total) : 0}</td>
+                                    </tr>
+                                </tbody>
+                            </Table>
+                        </div>
+
+                    </div>
+                )
+            })}
             <div>
-                <img src={country.countryInfo?.flag} alt='picture' />
-                <h1>{country.country} COVID-19 Cases:</h1>
-                <p>{country.cases ? numbWithCommas(country.cases) : 0}</p>
-                <h2>Total population:</h2>
-                <p>{country.population ? numbWithCommas(country.population) : 0}</p>
-                <h3>Total deaths:</h3>
-                <p>{country.deaths ? numbWithCommas(country.deaths) : 0}</p>
-            </div>
-            <div className='infoContainer'>
-                <p> More info:</p>
-                <Table>
-                    <thead>
-                        <tr>
-                            <th>Today Cases:</th>
-                            <th>Today Deaths:</th>
-                            <th>Today Recovered:</th>
-                            <th>Active:</th>
-                            <th>Critical:</th>
-                            <th>Tests:</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>{country.todayCases ? numbWithCommas(country.todayCases) : 0}</td>
-                            <td>{country.todayDeaths}</td>
-                            <td>{country.recovered ? numbWithCommas(country.recovered) : 0}</td>
-                            <td style={styles.dangerClass}>{country.active ? numbWithCommas(country.active) : 0}</td>
-                            <td>{country.critical ? numbWithCommas(country.critical) : 0}</td>
-                            <td>{country.tests ? numbWithCommas(country.tests) : 0}</td>
-                        </tr>
-                    </tbody>
-                </Table>
             </div>
             <h4>Keep Up to Date with this Country?</h4>
             <div className='countryForm'>
                 <Form onSubmit={onSubmitHandler}>
                     <p>Country Name: {country.country}</p>
                     <div>
-                        {errors.description && <p style={{color: 'red', fontStyle: 'italic'}}>*{errors.description.message}</p>}
+                        {errors.description && <p style={{ color: 'red', fontStyle: 'italic' }}>*{errors.description.message}</p>}
                         <Form.Label>Reason for keeping up to date?</Form.Label>
-                        <Form.Control type='text' onChange={(e)=> setDescription(e.target.value)} value={description}></Form.Control>
+                        <Form.Control type='text' onChange={(e) => setDescription(e.target.value)} value={description}></Form.Control>
                         {/* {errors.description.message} */}
                     </div>
                     <div>
                         <Form.Label>Do you have family members living in this country if so how many?</Form.Label>
-                        <Form.Select type='select' onChange={(e)=> setFamilyMembers(e.target.value)}>
+                        <Form.Select type='select' onChange={(e) => setFamilyMembers(e.target.value)}>
                             <option value="None" >0</option>
                             <option value="1">1</option>
                             <option value="2">2</option>
@@ -158,9 +171,9 @@ const AddCountry = (props) =>{
                         </Form.Select>
                     </div>
                     <div>
-                    {errors.plans && <p style={{color: 'red', fontStyle: 'italic'}}>*{errors.plans.message}</p>}
+                        {errors.plans && <p style={{ color: 'red', fontStyle: 'italic' }}>*{errors.plans.message}</p>}
                         <Form.Label>Plans to travel to this country?</Form.Label>
-                        <Form.Control type='text' onChange={(e)=> setPlans(e.target.value)}></Form.Control>
+                        <Form.Control type='text' onChange={(e) => setPlans(e.target.value)}></Form.Control>
                     </div>
                     <Button type='submit' variant='outline-success'>Add Country</Button>
                 </Form>

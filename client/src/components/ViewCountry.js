@@ -1,96 +1,103 @@
-import React, {useState, useEffect} from 'react';
-import {useParams, useNavigate, Link} from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import NavBar from './NavBar';
 import Form from 'react-bootstrap/Form';
 import Table from 'react-bootstrap/Table'
 import Button from 'react-bootstrap/Button'
 import 'bootstrap/dist/css/bootstrap.min.css'
-const ViewCountry = (props) =>{
-    const {name, id} = useParams();
+const ViewCountry = (props) => {
+    const { name, id } = useParams();
     const [country, setCountry] = useState([]);
     const navigate = useNavigate();
-    const [user, setUser] =  useState({})
+    const [user, setUser] = useState({})
     const [familyMembers, setFamilyMembers] = useState("");
     const [description, setDescription] = useState("");
     const [plans, setPlans] = useState("");
     const [errors, setErrors] = useState([])
     const [danger, setDanger] = useState(false)
     const styles = {
-        dangerClass:{
+        dangerClass: {
             backgroundColor: danger ? "red" : ""
         }
     }
-    
-
-    const apiCall = async () =>{
-        try {
-            const data = await axios
-            .get(`https://corona.lmao.ninja/v2/countries/${name}?yesterday=true&strict=true&query`)
-            .then(res =>{
-                console.log(res);
-                setCountry(res.data);
-                // setLoading(true);
-            });
-        } catch(err){
-            console.log(err)
+    const options = {
+        method: 'GET',
+        url: 'https://covid-193.p.rapidapi.com/statistics',
+        params: { country: name },
+        headers: {
+            'X-RapidAPI-Key': 'bf3dc3d936mshea8985b5b1e0517p18ae32jsnb9bbae562bec',
+            'X-RapidAPI-Host': 'covid-193.p.rapidapi.com'
         }
-    }
-    useEffect(()=>{
-        apiCall();
+    };
+    useEffect(() => {
+        axios.request(options).then(function (response) {
+            console.log(response.data);
+            setCountry(response.data.response)
+
+            console.log(country)
+        }).catch(function (error) {
+            console.error(error);
+        });
+
     }, [])
 
-    useEffect(()=>{
+    useEffect(() => {
         axios.get("http://localhost:8000/api/users/getUser",
-        {
-            withCredentials: true
-        })
-            .then((res)=>{
+            {
+                withCredentials: true
+            })
+            .then((res) => {
                 console.log(res.data);
                 setUser(res.data);
             })
-            .catch((err)=>{
+            .catch((err) => {
                 console.log(err);
                 navigate('/')
             })
     }, [])
-    const onSubmitHandler = (e) =>{
+    const onSubmitHandler = (e) => {
         e.preventDefault();
-        axios.post('http://localhost:8000/api/covid',{
+        axios.post('http://localhost:8000/api/covid', {
             name,
             familyMembers,
             description,
             plans
-        },{
+        }, {
             withCredentials: true
         }
         )
-        .then((res)=>{
-            console.log('hello')
-            console.log(res)
-            if(res.data.errors) {
-                console.log('hello!!!!!!!!')
-                console.log(res.data.errors)
-                setErrors(res.data.errors);
-            }
-            else{
-                navigate(`/user/profile/${user.username}`)
-            }
-        })
-        .catch((err)=>{
-            console.log(err)
-        })
+            .then((res) => {
+                console.log('hello')
+                console.log(res)
+                if (res.data.errors) {
+                    console.log('hello!!!!!!!!')
+                    console.log(res.data.errors)
+                    setErrors(res.data.errors);
+                }
+                else {
+                    navigate(`/user/profile/${user.username}`)
+                }
+            })
+            .catch((err) => {
+                console.log(err)
+            })
         setDescription("");
         setFamilyMembers("");
         setPlans("");
-        
+
 
     }
-    const numbWithCommas = (num) =>{
+    const numbWithCommas = (num) => {
         return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
     }
-    useEffect(()=>{
-        if(country.active > 100000){
+    const convertDate = (date) =>{
+        const newDate = new Date(date).toLocaleTimeString();
+        const newTime = new Date(date).toLocaleDateString();
+        return newDate + ' '+newTime
+    }
+    useEffect(() => {
+        if (country.active > 100000) {
             setDanger(true);
             console.log(danger)
         }
@@ -98,64 +105,68 @@ const ViewCountry = (props) =>{
     return (
         <div>
             <NavBar />
-            <div>
-                <img src={country.countryInfo?.flag} alt='picture' />
-                <h1>{country.country} COVID-19 Cases:</h1>
-                <p>{country.cases ? numbWithCommas(country.cases) : 0}</p>
-                <h2>Total population:</h2>
-                <p>{country.population ? numbWithCommas(country.population) : 0}</p>
-                <h3>Total deaths:</h3>
-                <p>{country.deaths ? numbWithCommas(country.deaths) : 0}</p>
-            </div>
+            {country.map((count, index) => {
+
+                return (
+                    <div key={index}>
+                        <h1>{count.country} COVID-19 Cases:</h1>
+                        <p>{count.cases.total ? numbWithCommas(count.cases.total) : 0}</p>
+                        <h2>Total population:</h2>
+                        <p>{count.population ? numbWithCommas(count.population) : 0}</p>
+                        <h3>Total deaths:</h3>
+                        <p>{count.deaths.total ? numbWithCommas(count.deaths.total) : 0}</p>
+                        <p> Basic info:</p>
+                        <Table>
+                            <thead>
+                                <tr>
+                                    <th>New Cases:</th>
+                                    <th>Recent Deaths:</th>
+                                    <th>Recovered:</th>
+                                    <th>Active:</th>
+                                    <th>Critical:</th>
+                                    <th>Tests:</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>{count.cases.new ? numbWithCommas(count.cases.new) : 0}</td>
+                                    <td>{count.deaths.new ? numbWithCommas(count.deaths.new): 0}</td>
+                                    <td>{count.cases.recovered ? numbWithCommas(count.cases.recovered) : 0}</td>
+                                    <td style={styles.dangerClass}>{count.cases.active ? numbWithCommas(count.cases.active) : 0}</td>
+                                    <td>{count.cases.critical ? numbWithCommas(count.cases.critical) : 0}</td>
+                                    <td>{count.tests.total ? numbWithCommas(count.tests.total) : 0}</td>
+                                </tr>
+                            </tbody>
+                        </Table>
+                        <p>Extra info:</p>
+                        <Table>
+                            <thead>
+                                <tr>
+                                    <th>Cases Per One Mil:</th>
+                                    <th>Death Per One Mil:</th>
+                                    <th>Tests Per One Mill:</th>
+                                    <th>Last Updated: </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>{count.cases["1M_pop"] ? numbWithCommas(count.cases["1M_pop"]) : 0}</td>
+                                    <td>{count.deaths["1M_pop"] ? numbWithCommas(count.deaths["1M_pop"]) : 0}</td>
+                                    <td>{count.tests["1M_pop"] ? numbWithCommas(count.tests["1M_pop"]) : 0}</td>
+                                    <td>{convertDate(count.time)}</td>
+                                </tr>
+                            </tbody>
+                        </Table>
+                    </div>
+                )
+            })
+
+            }
             <div className='infoContainer'>
-                <p> Basic info:</p>
-                <Table>
-                    <thead>
-                        <tr>
-                            <th>Today Cases:</th>
-                            <th>Today Deaths:</th>
-                            <th>Today Recovered:</th>
-                            <th>Active:</th>
-                            <th>Critical:</th>
-                            <th>Tests:</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>{country.todayCases ? numbWithCommas(country.todayCases) : 0}</td>
-                            <td>{country.todayDeaths}</td>
-                            <td>{country.recovered ? numbWithCommas(country.recovered) : 0}</td>
-                            <td style={styles.dangerClass}>{country.active ? numbWithCommas(country.active) : 0}</td>
-                            <td>{country.critical ? numbWithCommas(country.critical) : 0}</td>
-                            <td>{country.tests ? numbWithCommas(country.tests) : 0}</td>
-                        </tr>
-                    </tbody>
-                </Table>
-                <p>Extra info:</p>
-                <Table>
-                    <thead>
-                        <tr>
-                            <th>Active Per One Mil:</th>
-                            <th>Cases Per One Mil:</th>
-                            <th>Death Per One Mil:</th>
-                            <th>Recovered Per One Mil:</th>
-                            <th>Critical Per One Mil:</th>
-                            <th>Tests Per One Mill:</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>{country.activePerOneMillion ? numbWithCommas(country.activePerOneMillion) : 0}</td>
-                            <td>{country.casesPerOneMillion ? numbWithCommas(country.casesPerOneMillion) : 0}</td>
-                            <td>{country.deathsPerOneMillion ? numbWithCommas(country.deathsPerOneMillion) : 0}</td>
-                            <td>{country.recoveredPerOneMillion ? numbWithCommas(country.recoveredPerOneMillion) : 0}</td>
-                            <td>{country.criticalPerOneMillion ? numbWithCommas(country.criticalPerOneMillion) : 0}</td>
-                            <td>{country.testsPerOneMillion ? numbWithCommas(country.testsPerOneMillion) : 0}</td>
-                        </tr>
-                    </tbody>
-                </Table>
+                
+               
             </div>
         </div>
-)
+    )
 }
 export default ViewCountry;
