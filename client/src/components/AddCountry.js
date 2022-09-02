@@ -114,8 +114,8 @@ const AddCountry = (props) => {
                             <h3>Total deaths:</h3>
                             <p>{count.deaths.total ? numbWithCommas(count.deaths.total) : 0}</p>
                         </div>
+                        <p> More info:</p>
                         <div className='infoContainer'>
-                            <p> More info:</p>
                             <Table>
                                 <thead>
                                     <tr>
@@ -131,8 +131,8 @@ const AddCountry = (props) => {
                                     <tr>
                                         <td>{count.cases.new ? numbWithCommas(count.cases.new) : 0}</td>
                                         <td>{count.deaths.new ? numbWithCommas(count.deaths.new) : 0}</td>
-                                        <td>{count.recovered ? numbWithCommas(count.recovered) : 'N/A'}</td>
-                                        <td style={styles.dangerClass}>{count.active ? numbWithCommas(count.active) : 0}</td>
+                                        <td>{count.cases.recovered ? numbWithCommas(count.cases.recovered) : 'N/A'}</td>
+                                        <td style={styles.dangerClass}>{count.cases.active ? numbWithCommas(count.cases.active) : 0}</td>
                                         <td>{count.cases.critical ? numbWithCommas(count.cases.critical) : 0}</td>
                                         <td>{count.tests.total ? numbWithCommas(count.tests.total) : 0}</td>
                                     </tr>

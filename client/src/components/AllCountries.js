@@ -10,19 +10,21 @@ import 'bootstrap/dist/css/bootstrap.min.css'
 import NavBar from './NavBar';
 import { Form } from 'react-bootstrap';
 
+
 const AllCountries = () =>{
     const [search, setSearch] = useState('')
     const [countries, setCountries] = useState([])
     const [user, setUser] =  useState({})
     const navigate = useNavigate();
-    const options = {
-        method: 'GET',
-        headers: {
-            'X-RapidAPI-Key': 'bf3dc3d936mshea8985b5b1e0517p18ae32jsnb9bbae562bec',
-            'X-RapidAPI-Host': 'covid-193.p.rapidapi.com'
-        }
-    };
+    
     useEffect(()=>{
+        const options = {
+            method: 'GET',
+            headers: {
+                'X-RapidAPI-Key':'bf3dc3d936mshea8985b5b1e0517p18ae32jsnb9bbae562bec' ,
+                'X-RapidAPI-Host': 'covid-193.p.rapidapi.com'
+            }
+        };
         fetch('https://covid-193.p.rapidapi.com/statistics', options)
 	        .then(response => response.json())
 	        .then(response =>{ 
@@ -70,15 +72,15 @@ const AllCountries = () =>{
     return (
         <div>
             <NavBar />
-            <h1>COVID-19 Awareness</h1>
-            <h6>Keep up to date on COVID statistics on countries across the world!</h6>
             <div className='tableContainer'>
+                <h1>COVID-19 Awareness</h1>
+                <h6>Keep up to date on COVID statistics on countries across the world!</h6>
                 <Form.Control type='text' placeholder='Find a Country...' onChange={(e) =>{setSearch(e.target.value)}}/>
                 <br></br>
                 <Table striped bordered hover>
                     <thead>
                         <tr>
-                            <th>Flag</th>
+                            <th>Continent</th>
                             <th>Country</th>
                             <th>Total Cases</th>
                             <th>Total Deaths</th>

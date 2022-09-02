@@ -10,6 +10,7 @@
 .countryForm {
   display: flex;
   justify-content: center;
+  margin:auto
 }
 .entriesContainer{
   width: 1500px;
@@ -25,10 +26,12 @@
   padding-left: 500px;
 }
 .infoContainer {
-  width: 1250px;
+  width: 1000px;
   justify-content: center;
   /* padding-top: 50px; */
-  padding-left: 500px;
+  /* text-align: center; */
+  /* padding-left: 500px; */
+  margin:auto
 }
 
 

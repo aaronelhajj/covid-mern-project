@@ -21,21 +21,24 @@ const UpdateCountry = (props) =>{
             backgroundColor: danger ? "red" : ""
         }
     }
-
-    const apiCall = async () =>{
-        try {
-            const data = await axios
-            .get(`https://corona.lmao.ninja/v2/countries/${name}?yesterday=true&strict=true&query`)
-            .then(res =>{
-                console.log(res);
-                setCountry(res.data);
-            });
-        } catch(err){
-            console.log(err)
+    const options = {
+        method: 'GET',
+        url: 'https://covid-193.p.rapidapi.com/statistics',
+        params: { country: name },
+        headers: {
+            'X-RapidAPI-Key': 'bf3dc3d936mshea8985b5b1e0517p18ae32jsnb9bbae562bec',
+            'X-RapidAPI-Host': 'covid-193.p.rapidapi.com'
         }
-    }
-    useEffect(()=>{
-        apiCall()
+    };
+    useEffect(() => {
+        axios.request(options).then(function (response) {
+            console.log(response.data);
+            setCountry(response.data.response)
+
+            console.log(country)
+        }).catch(function (error) {
+            console.error(error);
+        });
 
     }, [])
     useEffect(()=>{
@@ -123,40 +126,46 @@ const UpdateCountry = (props) =>{
     return (
         <div>
             <NavBar />
-                <div>
-                    <img src={country.countryInfo?.flag} alt={country.country} />
-                    <h1>{country.country} COVID-19 Cases:</h1>
-                    <p>{country.cases ? numbWithCommas(country.cases) : null}</p>
-                    <h2>Total population:</h2>
-                    <p>{country.population ? numbWithCommas(country.population) : null}</p>
-                    <h3>Total deaths:</h3>
-                    <p>{country.deaths ? numbWithCommas(country.deaths) : null}</p>
-                </div>
-                <p> More info:</p>
-                <div className='infoContainer'>
-                    <Table>
-                        <thead>
-                            <tr>
-                                <th>Today Cases:</th>
-                                <th>Today Deaths:</th>
-                                <th>Today Recovered:</th>
-                                <th>Active:</th>
-                                <th>Critical:</th>
-                                <th>Tests:</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>{country.todayCases ? numbWithCommas(country.todayCases) : 0}</td>
-                                <td>{country.todayDeaths ? numbWithCommas(country.todayDeaths) : 0}</td>
-                                <td>{country.recovered ? numbWithCommas(country.recovered) : 0}</td>
-                                <td style={styles.dangerClass}>{country.active ? numbWithCommas(country.active) : 0}</td>
-                                <td>{country.critical ? numbWithCommas(country.critical) : 0}</td>
-                                <td>{country.tests ? numbWithCommas(country.tests) : 0}</td>
-                            </tr>
-                        </tbody>
-                    </Table>
-                </div>
+            {country.map((count, index) => {
+                
+                return (
+                    <div>
+                        <img style={{width:250}}src={`/images/${count.continent}.png`} alt ={`/images/${count.continent}`}/>
+                        <h1>{count.country ? count.country : null} COVID-19 Cases: </h1>
+                        <p>{count.cases.total ? numbWithCommas(count.cases.total) : 0}</p>
+                        <h2>Total population:</h2>
+                        <p>{count.population ? numbWithCommas(count.population) : 'N/A'}</p>
+                        <h3>Total deaths:</h3>
+                        <p>{count.deaths.total ? numbWithCommas(count.deaths.total) : 0}</p>
+                        <p> More info:</p>
+                        <div className='infoContainer'>
+                            <Table>
+                                <thead>
+                                    <tr>
+                                        <th>Today Cases:</th>
+                                        <th>Today Deaths:</th>
+                                        <th>Today Recovered:</th>
+                                        <th>Active:</th>
+                                        <th>Critical:</th>
+                                        <th>Tests:</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>{count.cases.new ? numbWithCommas(count.cases.new) : 0}</td>
+                                        <td>{count.deaths.new ? numbWithCommas(count.deaths.new) : 0}</td>
+                                        <td>{count.cases.recovered ? numbWithCommas(count.cases.recovered) : 0}</td>
+                                        <td style={styles.dangerClass}>{count.cases.active ? numbWithCommas(count.cases.active) : 0}</td>
+                                        <td>{count.cases.critical ? numbWithCommas(count.cases.critical) : 0}</td>
+                                        <td>{count.tests.total ? numbWithCommas(count.tests.total) : 0}</td>
+                                    </tr>
+                                </tbody>
+                            </Table>
+                        </div>
+                    </div>
+                )
+                })}
+                
                 <h4>Keep Up to Date with this Country?</h4>
                 <div className='countryForm'>
                     <Form onSubmit={onSubmitHandler}>

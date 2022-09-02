@@ -14,5 +14,4 @@ app.use(cookieParser())
 require("./config/mongoose.config")
 require("./routes/covid.routes")(app)
 require("./routes/user.routes")(app)
-
 app.listen(process.env.MY_PORT, () => console.log(`You are connected to port ${process.env.MY_PORT}`) )

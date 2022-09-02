@@ -108,7 +108,7 @@ const ViewCountry = (props) => {
             {country.map((count, index) => {
 
                 return (
-                    <div key={index}>
+                    <div key={index} className='infoContainer'>
                         <h1>{count.country} COVID-19 Cases:</h1>
                         <p>{count.cases.total ? numbWithCommas(count.cases.total) : 0}</p>
                         <h2>Total population:</h2>
