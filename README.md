@@ -6,3 +6,5 @@ I'm currently still working on implementing a few features first being hosting i
 based on alphabetical names, or by highest to lowest cases depending on what the users is interested in.
 As of tomorrow (8/31/2022) I will be creating a video of how the project functions in the meantime while I work on getting it on the web.
 After I get the basic web app online I plan to work on the extra filter features.
+Demo video if curious about functionality!
+https://www.youtube.com/watch?v=TsP1nWLaNt8
